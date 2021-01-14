@@ -31,7 +31,7 @@ def main(stdscr):
         while True:
             try:
                 data = sock.recv(1024).decode()
-                # Necessary, otherwise curses with spurt a bunch of garbage onto the main screen
+                # Necessary, otherwise curses will spurt a bunch of garbage onto the main screen
                 time.sleep(0.01)
             except ConnectionAbortedError:
                 break
