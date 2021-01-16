@@ -5,20 +5,89 @@ import threading
 import curses
 import time
 from curses.textpad import Textbox, rectangle
+from utils import split_command
 
 lines = []
+HELP = [
+    ">> Help menu: ",
+    "  * /help - Display this menu.",
+    "  * /leave - Exit the application and chat channel.",
+    "  * /list - List all users currently in the chat channel.",
+    "  * /whisper [user] [message] - Privately send a given user a message.",
+    "  * /username [new name] - Change your username.",
+    ""
+]
 
 if(len(sys.argv) < 4):
     print("Invalid syntax! Try: 'python client.py [username] [hostname] [port]'")
     sys.exit()
 
-username = sys.argv[1]
+username = sys.argv[1].replace(" ", "")
 hostname = sys.argv[2]
 port = int(sys.argv[3])
 
 def main(stdscr):
     y_max, x_max = stdscr.getmaxyx()
     stdscr.leaveok(True)
+
+    def help_menu(args=None):
+        lines.extend(HELP)
+        redraw()
+
+    def request_list(args):
+        sock.send("LIST".encode())
+    
+    def leave(args):
+        raise BrokenPipeError
+
+    def send_whisper(args):
+        split = args.split(" ", 1)
+        if len(split) != 2:
+            lines.append(">> Invalid syntax, try: '/whisper [user] [message]'")
+        else:
+            sock.send(("WHISPER " + args).encode())
+
+    commands = {
+        "help": help_menu,
+        "leave": leave,
+        "list": request_list,
+        "whisper": send_whisper
+    }
+
+    def chat(args):
+        split2 = args.split(" ", 1)
+        lines.append(split2[0].strip() + " > " + split2[1].strip())
+
+    def join(args):
+        lines.append(">> " + args + " has joined the channel!")
+    
+    def leave(args):
+        lines.append(">> " + args + " has left the channel!")
+    
+    def list_users(args):
+        users = map(lambda x: "  * " + x, args.split(" "))
+        lines.append(">> Connected users:")
+        lines.extend(users)
+
+    def whisper(args):
+        fr, msg = split_command(args)
+        
+        if msg is None:
+            return
+        
+        lines.append(fr + " -> you: " + msg)
+    
+    def error(args):
+        lines.append(">> [ERROR] " + args)
+
+    protocol = {
+        "CHAT": chat,
+        "JOIN": join,
+        "LEAVE": leave,
+        "LIST": list_users,
+        "WHISPER": whisper,
+        "ERROR": error
+    }
 
     def redraw(): 
         for i, line in enumerate(lines[-y_max+3:]):
@@ -31,33 +100,42 @@ def main(stdscr):
         while True:
             try:
                 data = sock.recv(1024).decode()
+                if data == '':
+                    raise ConnectionAbortedError
                 # Necessary, otherwise curses will spurt a bunch of garbage onto the main screen
                 time.sleep(0.01)
             except ConnectionAbortedError:
                 break
-            split = data.split(" ", 1)
 
-            if len(split) != 2:
-                continue
+            command, args = split_command(data)
 
-            command = split[0]
-            args = split[1]
-            if(command == "CHAT"):
-                split2 = args.split(" ", 1)
-                lines.append(split2[0].strip() + " > " + split2[1].strip())
-            elif(command == "JOIN"):
-                lines.append(args + " has joined the channel!")
-            elif(command == "LEAVE"):
-                lines.append(args + " has left the channel!")
+            if command in protocol:
+                protocol[command](args)
+
             redraw()
+        
+        lines.append(">> Connection to the server has been lost...")
+        redraw()
 
     threading.Thread(target=receive, daemon=True).start()
+    help_menu()
     while True:
         redraw()
         message = Textbox(curses.newwin(1, x_max-2, y_max-1, 1)).edit()
-        sock.send(("CHAT " + message).encode())
+        
+        if message == "":
+            continue
 
+        if message[0] != "/":
+            sock.send(("CHAT " + message).encode())
+        else:
+            command, args = split_command(message[1:])
+            if command in commands:
+                commands[command](args)
+            else:
+                lines.append(">> Unrecognized command, use /help for a list of valid commands!")
 
+        
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -77,4 +155,5 @@ if __name__ == "__main__":
     except (BrokenPipeError):
         print("Lost connection to server.")
     finally:
+        sock.shutdown(socket.SHUT_RDWR)
         sock.close()

@@ -1,7 +1,7 @@
 import sys
 import socket
 import threading
-import time
+from utils import split_command
 
 if(len(sys.argv) < 2):
     print("Invalid syntax! Try: 'python server.py [port]'")
@@ -24,21 +24,11 @@ def receive(sock):
         except:
             break
         
-        split = data.decode().split(" ", 1)
-        if(len(split) != 2):
-            continue
+        command, args = split_command(data.decode())
 
-        command = split[0]
-        args = split[1]
+        if command in protocol:
+            protocol[command](sock, args)
 
-        if(command == "CHAT" and sock in clients):
-            broadcast((command + " " + clients[sock] + " " + args).encode())
-            log.write(command + " " + clients[sock] + " " + args + "\n")
-        elif(command == "JOIN"):
-            clients[sock] = args
-            print("Accepted username " + args +  " for: ", sock.getpeername())
-            broadcast(data)
-            log.write(command + " " + args + "\n")
     
     print("Lost connection to: ", sock.getpeername())
     sock.close()
@@ -48,10 +38,59 @@ def receive(sock):
         del clients[sock]
         msg = "LEAVE " + name
         broadcast(msg.encode())
-        log.write(msg)
+        log.write(msg + "\n")
+
+def chat(sock, args):
+    # Makes sure the user has a valid username set
+    if sock not in clients:
+        return
+    
+    msg = "CHAT " + clients[sock] + " " + args
+    broadcast(msg.encode())
+    log.write(msg + "\n")
+
+def join(sock, args):
+    args = args.replace(" ", "")
+    clients[sock] = args
+    msg = "JOIN " + args
+    broadcast(msg.encode())
+    log.write(msg + "\n")
+
+def list_users(sock, args):
+    msg = "LIST"
+    for i in clients:
+        msg += " " + clients[i]
+    sock.send(msg.encode())
+    log.write(msg + "\n")
+
+def whisper(sock, args):
+    to, msg = split_command(args)
+    
+    if msg is None:
+        sock.send(("ERROR Cannot send empty message.").encode())
+        return
+    
+    for i in clients:
+        if clients[i] != to:
+            continue
+
+        i.send(("WHISPER " + clients[sock] + " " + msg).encode())
+        return
+    
+    sock.send(("ERROR No connected user named: '" + to + "'.").encode())
+
+
+protocol = {
+    "CHAT": chat,
+    "JOIN": join,
+    "LIST": list_users,
+    "WHISPER": whisper
+}
 
 if __name__ == "__main__":
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     try:
         server_socket.bind(('', port))
     except OSError as e:

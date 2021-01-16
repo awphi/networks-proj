@@ -1,0 +1,26 @@
+### PROTOCOL DOCS
+'JOIN [username]' -
+  * Sent by: client or server
+  * Response: 'JOIN [username]' is broadcast (only if sent by client)
+
+'LEAVE [username]' - 
+  * Sent by: server
+  * Response: none
+
+'CHAT [message]' - 
+  * Sent by: client
+  * Response: 'CHAT [username] [message]' is broadcast (given that a valid username is set)
+
+'CHAT [username] [message]' - 
+  * Sent by: server
+  * Response: none
+
+'LIST' - 
+  * Sent by: client
+  * Response: 'LIST [username 1] [username 2] [username n]'
+
+'LIST [username 1] [username 2] [username n]' - 
+  * Sent by: server
+  * Response: none
+
+# DESIGN CHOICES SUMMARY
