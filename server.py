@@ -50,8 +50,7 @@ def chat(sock, args):
     log.write(msg + "\n")
 
 def join(sock, args):
-    args = args.replace(" ", "")
-    clients[sock] = args
+    username(sock, args)
     msg = "JOIN " + args
     broadcast(msg.encode())
     log.write(msg + "\n")
@@ -79,12 +78,15 @@ def whisper(sock, args):
     
     sock.send(("ERROR No connected user named: '" + to + "'.").encode())
 
+def username(sock, args):
+    clients[sock] = args.replace(" ","")
 
 protocol = {
     "CHAT": chat,
     "JOIN": join,
     "LIST": list_users,
-    "WHISPER": whisper
+    "WHISPER": whisper,
+    "USERNAME": username
 }
 
 if __name__ == "__main__":

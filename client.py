@@ -46,12 +46,16 @@ def main(stdscr):
             lines.append(">> Invalid syntax, try: '/whisper [user] [message]'")
         else:
             sock.send(("WHISPER " + args).encode())
+    
+    def change_username(args):
+        sock.send(("USERNAME " + args.replace(" ", "")).encode())
 
     commands = {
         "help": help_menu,
         "leave": leave,
         "list": request_list,
-        "whisper": send_whisper
+        "whisper": send_whisper,
+        "username": change_username
     }
 
     def chat(args):

@@ -23,4 +23,8 @@
   * Sent by: server
   * Response: none
 
+'USERNAME [new name]' - 
+  * Sent by: client
+  * Response: none
+
 # DESIGN CHOICES SUMMARY
