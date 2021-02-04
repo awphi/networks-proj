@@ -1,11 +1,11 @@
 ### PROTOCOL DOCS
 'JOIN [username]' -
   * Sent by: client or server
-  * Response: 'JOIN [username]' is broadcast (only if sent by client)
+  * Response: 'JOIN [username]' is broadcast to all connected (only if sent by client)
 
 'LEAVE [username]' - 
   * Sent by: server
-  * Response: none
+  * Response: none, displays [username] has left message
 
 'CHAT [message]' - 
   * Sent by: client
@@ -13,23 +13,35 @@
 
 'CHAT [username] [message]' - 
   * Sent by: server
-  * Response: none
+  * Response: none, displays chat from [username] with [message]
 
 'LIST' - 
   * Sent by: client
-  * Response: 'LIST [username 1] [username 2] [username n]'
+  * Response: 'LIST [username 1] [username 2] ... [username n]'
 
-'LIST [username 1] [username 2] [username n]' - 
+'LIST [username 1] [username 2] ... [username n]' - 
   * Sent by: server
-  * Response: none
+  * Response: none, displays list of users
 
 'USERNAME [new name]' - 
   * Sent by: client
-  * Response: none
+  * Response: 'USERNAMETO [old name] [new name]' sent to all connected
+
+'USERNAMETO [old name] [new name]' - 
+  * Sent by: server
+  * Response: none, displays changed username
 
 'WHISPER [username] [message]' - 
   * Sent by: client
-  * Response: 
+  * Response: WHISPERTO [username] [message]
+
+'WHISPER [username] [message]' -
+  * Sent by: server
+  * Response: none, displays whisper to sender FROM [username] with [message]
+
+'WHISPERTO [username] [message]' -
+  * Sent by: server
+  * Response: none, displays whisper TO [username] from sender with [message]
 
 # DESIGN CHOICES SUMMARY
   * Multiple people can have the same username for simplicity's sake, this however means whoever picked that username first will get_digit
