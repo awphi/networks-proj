@@ -5,7 +5,14 @@ import threading
 import curses
 import time
 from curses.textpad import Textbox, rectangle
-from utils import split_command
+
+def split_command(data):
+    split = data.split(" ", 1)
+    command = split[0]
+    args = None
+    if len(split) > 1:
+        args = split[1]
+    return command, args
 
 lines = []
 HELP = [
@@ -15,6 +22,8 @@ HELP = [
     "  * /list - List all users currently in the chat channel.",
     "  * /whisper [user] [message] - Privately send a given user a message.",
     "  * /username [new name] - Change your username.",
+    "  ",
+    "   NOTE: There is a bug on OS X Big Sur with curses that breaks backspacing in the text input, try ctrl+H!"
     ""
 ]
 
@@ -41,10 +50,11 @@ def main(stdscr):
         raise BrokenPipeError
 
     def send_whisper(args):
-        split = args.split(" ", 1)
-        if len(split) != 2:
+        to, msg = split_command(args)
+        if msg is None:
             lines.append(">> Invalid syntax, try: '/whisper [user] [message]'")
         else:
+            lines.append("you -> " + to + ": " + msg)
             sock.send(("WHISPER " + args).encode())
     
     def change_username(args):

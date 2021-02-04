@@ -1,5 +1,17 @@
-JOIN ADAMHBWELLS
-CHAT ADAMHBWELLS hi 
-CHAT Adam wow 
-CHAT Adam amazing 
-LEAVE Adam
+USERNAME  -> Jelly
+JOIN Jelly
+USERNAME  -> Moose
+JOIN Moose
+LIST Jelly Moose
+CHAT Moose Heya! 
+CHAT Jelly Hey Moose, gonna whisper u 
+WHISPER Jelly -> Moose yo 
+WHISPER Moose -> Jelly Yo back 
+USERNAME Moose -> MooseyMoosey
+CHAT MooseyMoosey New name , u like it? 
+CHAT Jelly definitely 
+CHAT Jelly i gotta go now 
+CHAT Jelly bye 
+LEAVE Jelly
+CHAT MooseyMoosey cya 
+LEAVE MooseyMoosey

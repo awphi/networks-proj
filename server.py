@@ -1,7 +1,14 @@
 import sys
 import socket
 import threading
-from utils import split_command
+
+def split_command(data):
+    split = data.split(" ", 1)
+    command = split[0]
+    args = None
+    if len(split) > 1:
+        args = split[1]
+    return command, args
 
 if(len(sys.argv) < 2):
     print("Invalid syntax! Try: 'python server.py [port]'")
@@ -74,12 +81,18 @@ def whisper(sock, args):
             continue
 
         i.send(("WHISPER " + clients[sock] + " " + msg).encode())
+        log.write("WHISPER " + clients[sock] + " -> " + clients[i] + " " + msg + "\n")
         return
     
     sock.send(("ERROR No connected user named: '" + to + "'.").encode())
 
 def username(sock, args):
+    if sock in clients:
+        c = clients[sock]
+    else:
+        c = ""
     clients[sock] = args.replace(" ","")
+    log.write("USERNAME " + c + " -> " + clients[sock] + "\n")
 
 protocol = {
     "CHAT": chat,
