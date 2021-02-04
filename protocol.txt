@@ -27,12 +27,16 @@
   * Sent by: client
   * Response: none
 
+'WHISPER [username] [message]' - 
+  * Sent by: client
+  * Response: 
+
 # DESIGN CHOICES SUMMARY
   * Multiple people can have the same username for simplicity's sake, this however means whoever picked that username first will get_digit
     all the messages sent to that username
   * Dictionary used for commands/protocol functions, making heavy use of splitting a protocol into it's operator and operands
     very scalable with little code overhead.
-  * Curses for a simple command-line interface client.
+  * Very simple logging capabilities as dictated by the project spec, I did however add whispers and usernames changes to the log.
   * Disallowing of spaces in usernames so they can be used in the protocol as separators, this has little impact on the user but keeps
     the code lightweight.
   * Note: split_command would be put in a common utils.py file but I'm not sure if extra files are allowed so I copied it into both client & server.

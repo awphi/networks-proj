@@ -54,7 +54,6 @@ def main(stdscr):
         if msg is None:
             lines.append(">> Invalid syntax, try: '/whisper [user] [message]'")
         else:
-            lines.append("you -> " + to + ": " + msg)
             sock.send(("WHISPER " + args).encode())
     
     def change_username(args):
@@ -91,8 +90,20 @@ def main(stdscr):
         
         lines.append(fr + " -> you: " + msg)
     
+    def whisperto(args):
+        to, msg = split_command(args)
+
+        if msg is None:
+            return
+
+        lines.append("you -> " + to + ": " + msg)
+    
     def error(args):
         lines.append(">> [ERROR] " + args)
+    
+    def usernameto(args):
+        f, t = split_command(args)
+        lines.append(">> '" + f + "' has changed their username to '" + t + "'")
 
     protocol = {
         "CHAT": chat,
@@ -100,6 +111,8 @@ def main(stdscr):
         "LEAVE": leave,
         "LIST": list_users,
         "WHISPER": whisper,
+        "WHISPERTO": whisperto,
+        "USERNAMETO": usernameto,
         "ERROR": error
     }
 
@@ -169,5 +182,4 @@ if __name__ == "__main__":
     except (BrokenPipeError):
         print("Lost connection to server.")
     finally:
-        sock.shutdown(socket.SHUT_RDWR)
         sock.close()

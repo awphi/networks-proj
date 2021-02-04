@@ -80,6 +80,7 @@ def whisper(sock, args):
         if clients[i] != to:
             continue
 
+        sock.send(("WHISPERTO " + clients[i] + " " + msg).encode())
         i.send(("WHISPER " + clients[sock] + " " + msg).encode())
         log.write("WHISPER " + clients[sock] + " -> " + clients[i] + " " + msg + "\n")
         return
@@ -90,9 +91,12 @@ def username(sock, args):
     if sock in clients:
         c = clients[sock]
     else:
-        c = ""
+        c = None
     clients[sock] = args.replace(" ","")
-    log.write("USERNAME " + c + " -> " + clients[sock] + "\n")
+
+    if c is not None:
+        broadcast(("USERNAMETO " + c + " " + clients[sock]).encode())
+        log.write("USERNAME " + c + " -> " + clients[sock] + "\n")
 
 protocol = {
     "CHAT": chat,
